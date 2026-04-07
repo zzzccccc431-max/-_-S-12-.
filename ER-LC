@@ -93,6 +93,11 @@ UIS.InputBegan:Connect(function(input)
 							head.Transparency = 0;
 							head.CanCollide = true;
 							head.Massless = false;
+							for _, obj in pairs(head:GetChildren()) do
+								if (obj:IsA("Decal") or obj:IsA("Texture")) then
+									obj.Transparency = 0;
+								end
+							end
 						end
 					end
 					removeESP(v);
@@ -141,6 +146,11 @@ RunService.RenderStepped:Connect(function()
 		head.Transparency = 1;
 		head.CanCollide = false;
 		head.Massless = true;
+		for _, obj in pairs(head:GetChildren()) do
+			if (obj:IsA("Decal") or obj:IsA("Texture")) then
+				obj.Transparency = 1;
+			end
+		end
 		if healthGuis[v] then
 			healthGuis[v].Enabled = true;
 			local text = healthGuis[v]:FindFirstChildOfClass("TextLabel");
