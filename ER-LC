@@ -67,7 +67,12 @@ local function setupPlayer(plr)
 		end
 		createHealthGui(plr, char);
 	end
-	plr.CharacterAdded:Connect(onCharacter);
+	plr.CharacterAdded:Connect(function(char)
+		if _G.Disabled then
+			task.wait(0.1);
+			onCharacter(char);
+		end
+	end);
 	if plr.Character then
 		onCharacter(plr.Character);
 	end
@@ -75,7 +80,12 @@ end
 for _, plr in pairs(Players:GetPlayers()) do
 	setupPlayer(plr);
 end
-Players.PlayerAdded:Connect(setupPlayer);
+Players.PlayerAdded:Connect(function(plr)
+	setupPlayer(plr);
+	if (_G.Disabled and plr.Character) then
+		createHealthGui(plr, plr.Character);
+	end
+end);
 UIS.InputBegan:Connect(function(input)
 	if (input.KeyCode == Enum.KeyCode.X) then
 		_G.Disabled = not _G.Disabled;
