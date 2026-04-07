@@ -1,5 +1,5 @@
 _G.HeadSize = 20
-_G.Disabled = true
+_G.Disabled = false 
 _G.TeamCheck = false
 
 local RunService = game:GetService('RunService')
@@ -98,7 +98,6 @@ UIS.InputBegan:Connect(function(input)
 			gui.Enabled = _G.Disabled
 		end
 
-		-- 🔥 التعديل: تفعيل الهيلث لكل اللاعبين الحاليين
 		if _G.Disabled then
 			for _,v in pairs(Players:GetPlayers()) do
 				if v ~= LocalPlayer then
@@ -130,7 +129,6 @@ UIS.InputBegan:Connect(function(input)
 							head.CanCollide = true
 							head.Massless = false
 
-							-- يرجع الفيس
 							for _,obj in pairs(head:GetChildren()) do
 								if obj:IsA("Decal") or obj:IsA("Texture") then
 									obj.Transparency = 0
@@ -178,14 +176,12 @@ RunService.RenderStepped:Connect(function()
 		if _G.TeamCheck and v.Team == LocalPlayer.Team then
 			removeESP(v)
 
-			-- رجع الرأس طبيعي
 			if head and OriginalHeads[v] then
 				head.Size = OriginalHeads[v]
 				head.Transparency = 0
 				head.CanCollide = true
 				head.Massless = false
 
-				-- رجوع الفيس
 				for _,obj in pairs(head:GetChildren()) do
 					if obj:IsA("Decal") or obj:IsA("Texture") then
 						obj.Transparency = 0
@@ -209,7 +205,6 @@ RunService.RenderStepped:Connect(function()
 		head.CanCollide = false
 		head.Massless = true
 
-		-- اخفاء الفيس
 		for _,obj in pairs(head:GetChildren()) do
 			if obj:IsA("Decal") or obj:IsA("Texture") then
 				obj.Transparency = 1
