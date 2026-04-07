@@ -98,6 +98,25 @@ UIS.InputBegan:Connect(function(input)
 			gui.Enabled = _G.Disabled
 		end
 
+		-- 🔥 التعديل: تفعيل الهيلث لكل اللاعبين الحاليين
+		if _G.Disabled then
+			for _,v in pairs(Players:GetPlayers()) do
+				if v ~= LocalPlayer then
+					local char = v.Character
+					if char then
+						local head = char:FindFirstChild("Head")
+						if head then
+							if not healthGuis[v] then
+								createHealthGui(v, char)
+							else
+								healthGuis[v].Enabled = true
+							end
+						end
+					end
+				end
+			end
+		end
+
 		if not _G.Disabled then
 			for _,v in pairs(Players:GetPlayers()) do
 				if v ~= LocalPlayer then
