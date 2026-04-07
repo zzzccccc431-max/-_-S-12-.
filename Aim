@@ -1,213 +1,175 @@
-local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
-local UIS = game:GetService("UserInputService")
-
-local player = Players.LocalPlayer
-local camera = workspace.CurrentCamera
-
-local enabled = false
-local teamCheck = true
-
-local FOV = 150
-local MaxDistance = 200
-
-local healthGuis = {}
-
-local BOX_SIZE = Vector2.new(80, 120)
-local Boxes = {}
-local Lines = {}
-
+local Players = game:GetService("Players");
+local RunService = game:GetService("RunService");
+local UIS = game:GetService("UserInputService");
+local player = Players.LocalPlayer;
+local camera = workspace.CurrentCamera;
+local enabled = false;
+local teamCheck = true;
+local FOV = 150;
+local MaxDistance = 200;
+local healthGuis = {};
+local BOX_SIZE = Vector2.new(80, 120);
+local Boxes = {};
+local Lines = {};
 local function removeESP(plr)
 	if Boxes[plr] then
-		Boxes[plr]:Remove()
-		Boxes[plr] = nil
+		Boxes[plr]:Remove();
+		Boxes[plr] = nil;
 	end
-
 	if Lines[plr] then
-		Lines[plr]:Remove()
-		Lines[plr] = nil
+		Lines[plr]:Remove();
+		Lines[plr] = nil;
 	end
 end
-
 Players.PlayerRemoving:Connect(function(plr)
-	removeESP(plr)
-
+	removeESP(plr);
 	if healthGuis[plr] then
-		healthGuis[plr]:Destroy()
-		healthGuis[plr] = nil
+		healthGuis[plr]:Destroy();
+		healthGuis[plr] = nil;
 	end
-end)
-
+end);
 local function createHealthGui(plr, char)
 	if healthGuis[plr] then
-		healthGuis[plr]:Destroy()
+		healthGuis[plr]:Destroy();
 	end
-
-	local head = char:FindFirstChild("Head")
-	if not head then return end
-
-	local gui = Instance.new("BillboardGui")
-	gui.Size = UDim2.new(0,120,0,30)
-	gui.StudsOffset = Vector3.new(0,2.5,0)
-	gui.AlwaysOnTop = true
-	gui.MaxDistance = 200
-	gui.Enabled = false
-
-	local text = Instance.new("TextLabel")
-	text.Size = UDim2.new(1,0,1,0)
-	text.BackgroundTransparency = 1
-	text.TextColor3 = Color3.fromRGB(255,0,0)
-	text.TextStrokeTransparency = 0
-	text.TextScaled = false
-	text.TextSize = 14
-	text.Font = Enum.Font.SourceSansBold
-	text.Parent = gui
-
-	gui.Parent = head
-	healthGuis[plr] = gui
-
-	local humanoid = char:FindFirstChild("Humanoid")
+	local head = char:FindFirstChild("Head");
+	if not head then
+		return;
+	end
+	local gui = Instance.new("BillboardGui");
+	gui.Size = UDim2.new(0, 120, 0, 30);
+	gui.StudsOffset = Vector3.new(0, 2.5, 0);
+	gui.AlwaysOnTop = true;
+	gui.MaxDistance = 200;
+	gui.Enabled = false;
+	local text = Instance.new("TextLabel");
+	text.Size = UDim2.new(1, 0, 1, 0);
+	text.BackgroundTransparency = 1;
+	text.TextColor3 = Color3.fromRGB(255, 0, 0);
+	text.TextStrokeTransparency = 0;
+	text.TextScaled = false;
+	text.TextSize = 14;
+	text.Font = Enum.Font.SourceSansBold;
+	text.Parent = gui;
+	gui.Parent = head;
+	healthGuis[plr] = gui;
+	local humanoid = char:FindFirstChild("Humanoid");
 	if humanoid then
 		RunService.RenderStepped:Connect(function()
-			if gui and humanoid then
-				text.Text = math.floor(humanoid.Health) .. " HP"
+			if (gui and humanoid) then
+				text.Text = math.floor(humanoid.Health) .. " HP";
 			end
-		end)
+		end);
 	end
 end
-
 local function setupPlayer(plr)
-	if plr == player then return end
-
+	if (plr == player) then
+		return;
+	end
 	plr.CharacterAdded:Connect(function(char)
-		task.wait(1)
-		createHealthGui(plr, char)
-	end)
+		task.wait(1);
+		createHealthGui(plr, char);
+	end);
 end
-
-for _,plr in pairs(Players:GetPlayers()) do
-	setupPlayer(plr)
+for _, plr in pairs(Players:GetPlayers()) do
+	setupPlayer(plr);
 	if plr.Character then
-		createHealthGui(plr, plr.Character)
+		createHealthGui(plr, plr.Character);
 	end
 end
-
-Players.PlayerAdded:Connect(setupPlayer)
-
+Players.PlayerAdded:Connect(setupPlayer);
 UIS.InputBegan:Connect(function(input, typing)
-	if typing then return end
-
-	if input.KeyCode == Enum.KeyCode.U then
-		enabled = not enabled
+	if typing then
+		return;
 	end
-
-	if input.KeyCode == Enum.KeyCode.T then
-		teamCheck = not teamCheck
+	if (input.KeyCode == Enum.KeyCode.U) then
+		enabled = not enabled;
 	end
-end)
-
+	if (input.KeyCode == Enum.KeyCode.T) then
+		teamCheck = not teamCheck;
+	end
+end);
 RunService.RenderStepped:Connect(function()
-
-	local myChar = player.Character
-	local myRoot = myChar and myChar:FindFirstChild("HumanoidRootPart")
-	if not myRoot then return end
-
-	local screenCenter = Vector2.new(camera.ViewportSize.X/2, camera.ViewportSize.Y/2)
-
-	local closestHead = nil
-	local closestDistance = math.huge
-
+	local myChar = player.Character;
+	local myRoot = myChar and myChar:FindFirstChild("HumanoidRootPart");
+	if not myRoot then
+		return;
+	end
+	local screenCenter = Vector2.new(camera.ViewportSize.X / 2, camera.ViewportSize.Y / 2);
+	local closestHead = nil;
+	local closestDistance = math.huge;
 	for _, plr in pairs(Players:GetPlayers()) do
-		if plr == player then continue end
-
-		local char = plr.Character
-		local humanoid = char and char:FindFirstChild("Humanoid")
-		local root = char and char:FindFirstChild("HumanoidRootPart")
-		local head = char and char:FindFirstChild("Head")
-
-		if char and humanoid and humanoid.Health > 0 and root and head then
-
-			if teamCheck and plr.Team == player.Team then
-				removeESP(plr)
+		if (plr == player) then
+			continue;
+		end
+		local char = plr.Character;
+		local humanoid = char and char:FindFirstChild("Humanoid");
+		local root = char and char:FindFirstChild("HumanoidRootPart");
+		local head = char and char:FindFirstChild("Head");
+		if (char and humanoid and (humanoid.Health > 0) and root and head) then
+			if (teamCheck and (plr.Team == player.Team)) then
+				removeESP(plr);
 				if healthGuis[plr] then
-					healthGuis[plr].Enabled = false
+					healthGuis[plr].Enabled = false;
 				end
-				continue
+				continue;
 			end
-
 			if enabled then
 				if not Boxes[plr] then
-					local box = Drawing.new("Square")
-					box.Color = Color3.new(1, 0, 0)
-					box.Thickness = 2
-					box.Filled = false
-					Boxes[plr] = box
+					local box = Drawing.new("Square");
+					box.Color = Color3.new(1, 0, 0);
+					box.Thickness = 2;
+					box.Filled = false;
+					Boxes[plr] = box;
 				end
-
 				if not Lines[plr] then
-					local line = Drawing.new("Line")
-					line.Color = Color3.new(1, 0, 0)
-					line.Thickness = 1.5
-					Lines[plr] = line
+					local line = Drawing.new("Line");
+					line.Color = Color3.new(1, 0, 0);
+					line.Thickness = 1.5;
+					Lines[plr] = line;
 				end
-
-				local pos, onScreen = camera:WorldToViewportPoint(root.Position)
-
+				local pos, onScreen = camera:WorldToViewportPoint(root.Position);
 				if onScreen then
-					Boxes[plr].Size = BOX_SIZE
-					Boxes[plr].Position = Vector2.new(
-						pos.X - BOX_SIZE.X / 2,
-						pos.Y - BOX_SIZE.Y / 2
-					)
-					Boxes[plr].Visible = true
-
-					Lines[plr].From = Vector2.new(
-						camera.ViewportSize.X / 2,
-						camera.ViewportSize.Y
-					)
-					Lines[plr].To = Vector2.new(pos.X, pos.Y)
-					Lines[plr].Visible = true
+					Boxes[plr].Size = BOX_SIZE;
+					Boxes[plr].Position = Vector2.new(pos.X - (BOX_SIZE.X / 2), pos.Y - (BOX_SIZE.Y / 2));
+					Boxes[plr].Visible = true;
+					Lines[plr].From = Vector2.new(camera.ViewportSize.X / 2, camera.ViewportSize.Y);
+					Lines[plr].To = Vector2.new(pos.X, pos.Y);
+					Lines[plr].Visible = true;
 				else
-					Boxes[plr].Visible = false
-					Lines[plr].Visible = false
+					Boxes[plr].Visible = false;
+					Lines[plr].Visible = false;
 				end
-
 				if healthGuis[plr] then
-					healthGuis[plr].Enabled = true
+					healthGuis[plr].Enabled = true;
 				end
 			else
-				removeESP(plr)
+				removeESP(plr);
 				if healthGuis[plr] then
-					healthGuis[plr].Enabled = false
+					healthGuis[plr].Enabled = false;
 				end
 			end
-
-			local distance = (myRoot.Position - root.Position).Magnitude
-			if distance <= MaxDistance then
-				local headPos, onScreen = camera:WorldToViewportPoint(head.Position)
-
+			local distance = (myRoot.Position - root.Position).Magnitude;
+			if (distance <= MaxDistance) then
+				local headPos, onScreen = camera:WorldToViewportPoint(head.Position);
 				if onScreen then
-					local distFromCenter = (Vector2.new(headPos.X, headPos.Y) - screenCenter).Magnitude
-
-					if distFromCenter <= FOV then
-						if distance < closestDistance then
-							closestDistance = distance
-							closestHead = head
+					local distFromCenter = (Vector2.new(headPos.X, headPos.Y) - screenCenter).Magnitude;
+					if (distFromCenter <= FOV) then
+						if (distance < closestDistance) then
+							closestDistance = distance;
+							closestHead = head;
 						end
 					end
 				end
 			end
-
 		else
-			removeESP(plr)
+			removeESP(plr);
 			if healthGuis[plr] then
-				healthGuis[plr].Enabled = false
+				healthGuis[plr].Enabled = false;
 			end
 		end
 	end
-
-	if enabled and closestHead then
-		camera.CFrame = CFrame.new(camera.CFrame.Position, closestHead.Position)
+	if (enabled and closestHead) then
+		camera.CFrame = CFrame.new(camera.CFrame.Position, closestHead.Position);
 	end
-
-end)
+end);
