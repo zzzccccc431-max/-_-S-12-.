@@ -1,187 +1,238 @@
-_G.HeadSize = 20;
-_G.Disabled = true;
-_G.TeamCheck = false;
-local RunService = game:GetService("RunService");
-local Players = game:GetService("Players");
-local LocalPlayer = Players.LocalPlayer;
-local UIS = game:GetService("UserInputService");
-local Camera = workspace.CurrentCamera;
-local OriginalHeads = {};
-local healthGuis = {};
-local BOX_SIZE = Vector2.new(80, 120);
-local Boxes = {};
-local Lines = {};
+_G.HeadSize = 20
+_G.Disabled = true
+_G.TeamCheck = false
+
+local RunService = game:GetService('RunService')
+local Players = game:GetService('Players')
+local LocalPlayer = Players.LocalPlayer
+local UIS = game:GetService("UserInputService")
+local Camera = workspace.CurrentCamera
+
+local OriginalHeads = {}
+local healthGuis = {}
+
+local BOX_SIZE = Vector2.new(80, 120)
+local Boxes = {}
+local Lines = {}
+
 local function removeESP(player)
 	if Boxes[player] then
-		Boxes[player]:Destroy();
-		Boxes[player] = nil;
+		Boxes[player]:Destroy()
+		Boxes[player] = nil
 	end
 	if Lines[player] then
-		Lines[player]:Destroy();
-		Lines[player] = nil;
+		Lines[player]:Destroy()
+		Lines[player] = nil
 	end
 end
+
 Players.PlayerRemoving:Connect(function(player)
-	removeESP(player);
+	removeESP(player)
 	if healthGuis[player] then
-		healthGuis[player]:Destroy();
-		healthGuis[player] = nil;
+		healthGuis[player]:Destroy()
+		healthGuis[player] = nil
 	end
-end);
+end)
+
 local function createHealthGui(plr, char)
 	if healthGuis[plr] then
-		healthGuis[plr]:Destroy();
+		healthGuis[plr]:Destroy()
 	end
-	local head = char:WaitForChild("Head", 5);
-	if not head then
-		return;
-	end
-	local gui = Instance.new("BillboardGui");
-	gui.Size = UDim2.new(0, 120, 0, 30);
-	gui.StudsOffset = Vector3.new(0, 2.5, 0);
-	gui.AlwaysOnTop = true;
-	gui.MaxDistance = 200;
-	gui.Enabled = _G.Disabled;
-	local text = Instance.new("TextLabel");
-	text.Size = UDim2.new(1, 0, 1, 0);
-	text.BackgroundTransparency = 1;
-	text.TextColor3 = Color3.fromRGB(255, 0, 0);
-	text.TextStrokeTransparency = 0;
-	text.TextSize = 14;
-	text.Font = Enum.Font.SourceSansBold;
-	text.Parent = gui;
-	gui.Parent = head;
-	healthGuis[plr] = gui;
+
+	local head = char:WaitForChild("Head", 5)
+	if not head then return end
+
+	local gui = Instance.new("BillboardGui")
+	gui.Size = UDim2.new(0,120,0,30)
+	gui.StudsOffset = Vector3.new(0,2.5,0)
+	gui.AlwaysOnTop = true
+	gui.MaxDistance = 200
+	gui.Enabled = _G.Disabled
+
+	local text = Instance.new("TextLabel")
+	text.Size = UDim2.new(1,0,1,0)
+	text.BackgroundTransparency = 1
+	text.TextColor3 = Color3.fromRGB(255,0,0)
+	text.TextStrokeTransparency = 0
+	text.TextSize = 14
+	text.Font = Enum.Font.SourceSansBold
+	text.Parent = gui
+
+	gui.Parent = head
+	healthGuis[plr] = gui
 end
+
 local function setupPlayer(plr)
-	if (plr == LocalPlayer) then
-		return;
-	end
+	if plr == LocalPlayer then return end
+
 	local function onCharacter(char)
-		removeESP(plr);
-		local humanoid = char:WaitForChild("Humanoid", 5);
-		local head = char:WaitForChild("Head", 5);
-		local root = char:WaitForChild("HumanoidRootPart", 5);
-		if not (humanoid and head and root) then
-			return;
-		end
-		createHealthGui(plr, char);
+		removeESP(plr)
+
+		local humanoid = char:WaitForChild("Humanoid", 5)
+		local head = char:WaitForChild("Head", 5)
+		local root = char:WaitForChild("HumanoidRootPart", 5)
+
+		if not (humanoid and head and root) then return end
+
+		createHealthGui(plr, char)
 	end
-	plr.CharacterAdded:Connect(onCharacter);
+
+	plr.CharacterAdded:Connect(onCharacter)
+
 	if plr.Character then
-		onCharacter(plr.Character);
+		onCharacter(plr.Character)
 	end
 end
-for _, plr in pairs(Players:GetPlayers()) do
-	setupPlayer(plr);
+
+for _,plr in pairs(Players:GetPlayers()) do
+	setupPlayer(plr)
 end
-Players.PlayerAdded:Connect(setupPlayer);
+
+Players.PlayerAdded:Connect(setupPlayer)
+
 UIS.InputBegan:Connect(function(input)
-	if (input.KeyCode == Enum.KeyCode.X) then
-		_G.Disabled = not _G.Disabled;
+	if input.KeyCode == Enum.KeyCode.X then
+		_G.Disabled = not _G.Disabled
+
 		for _, gui in pairs(healthGuis) do
-			gui.Enabled = _G.Disabled;
+			gui.Enabled = _G.Disabled
 		end
+
 		if not _G.Disabled then
-			for _, v in pairs(Players:GetPlayers()) do
-				if (v ~= LocalPlayer) then
-					local char = v.Character;
+			for _,v in pairs(Players:GetPlayers()) do
+				if v ~= LocalPlayer then
+					local char = v.Character
 					if char then
-						local head = char:FindFirstChild("Head");
-						if (head and OriginalHeads[v]) then
-							head.Size = OriginalHeads[v];
-							head.Transparency = 0;
-							head.CanCollide = true;
-							head.Massless = false;
-							for _, obj in pairs(head:GetChildren()) do
-								if (obj:IsA("Decal") or obj:IsA("Texture")) then
-									obj.Transparency = 0;
+						local head = char:FindFirstChild("Head")
+
+						if head and OriginalHeads[v] then
+							head.Size = OriginalHeads[v]
+							head.Transparency = 0
+							head.CanCollide = true
+							head.Massless = false
+
+							-- يرجع الفيس
+							for _,obj in pairs(head:GetChildren()) do
+								if obj:IsA("Decal") or obj:IsA("Texture") then
+									obj.Transparency = 0
 								end
 							end
 						end
 					end
-					removeESP(v);
+
+					removeESP(v)
+
 					if healthGuis[v] then
-						healthGuis[v].Enabled = false;
+						healthGuis[v].Enabled = false
 					end
 				end
 			end
 		end
 	end
-	if (input.KeyCode == Enum.KeyCode.Z) then
-		_G.TeamCheck = not _G.TeamCheck;
+
+	if input.KeyCode == Enum.KeyCode.Z then
+		_G.TeamCheck = not _G.TeamCheck
 	end
-end);
+end)
+
 RunService.RenderStepped:Connect(function()
-	if not _G.Disabled then
-		return;
-	end
+	if not _G.Disabled then return end
+
 	for _, v in pairs(Players:GetPlayers()) do
-		if (v == LocalPlayer) then
-			continue;
-		end
-		local char = v.Character;
+		if v == LocalPlayer then continue end
+
+		local char = v.Character
 		if not char then
-			removeESP(v);
-			continue;
+			removeESP(v)
+			continue
 		end
-		local humanoid = char:FindFirstChild("Humanoid");
-		local head = char:FindFirstChild("Head");
-		local root = char:FindFirstChild("HumanoidRootPart");
-		if (not humanoid or (humanoid.Health <= 0) or not head or not root) then
-			removeESP(v);
-			continue;
+
+		local humanoid = char:FindFirstChild("Humanoid")
+		local head = char:FindFirstChild("Head")
+		local root = char:FindFirstChild("HumanoidRootPart")
+
+		if not humanoid or humanoid.Health <= 0 or not head or not root then
+			removeESP(v)
+			continue
 		end
-		if (_G.TeamCheck and (v.Team == LocalPlayer.Team)) then
-			removeESP(v);
+
+		if _G.TeamCheck and v.Team == LocalPlayer.Team then
+			removeESP(v)
+
+			-- رجع الرأس طبيعي
+			if head and OriginalHeads[v] then
+				head.Size = OriginalHeads[v]
+				head.Transparency = 0
+				head.CanCollide = true
+				head.Massless = false
+
+				-- رجوع الفيس
+				for _,obj in pairs(head:GetChildren()) do
+					if obj:IsA("Decal") or obj:IsA("Texture") then
+						obj.Transparency = 0
+					end
+				end
+			end
+
 			if healthGuis[v] then
-				healthGuis[v].Enabled = false;
+				healthGuis[v].Enabled = false
 			end
-			continue;
+
+			continue
 		end
+
 		if not OriginalHeads[v] then
-			OriginalHeads[v] = head.Size;
+			OriginalHeads[v] = head.Size
 		end
-		head.Size = Vector3.new(_G.HeadSize, _G.HeadSize, _G.HeadSize);
-		head.Transparency = 1;
-		head.CanCollide = false;
-		head.Massless = true;
-		for _, obj in pairs(head:GetChildren()) do
-			if (obj:IsA("Decal") or obj:IsA("Texture")) then
-				obj.Transparency = 1;
+
+		head.Size = Vector3.new(_G.HeadSize,_G.HeadSize,_G.HeadSize)
+		head.Transparency = 1
+		head.CanCollide = false
+		head.Massless = true
+
+		-- اخفاء الفيس
+		for _,obj in pairs(head:GetChildren()) do
+			if obj:IsA("Decal") or obj:IsA("Texture") then
+				obj.Transparency = 1
 			end
 		end
+
 		if healthGuis[v] then
-			healthGuis[v].Enabled = true;
-			local text = healthGuis[v]:FindFirstChildOfClass("TextLabel");
+			healthGuis[v].Enabled = true
+			local text = healthGuis[v]:FindFirstChildOfClass("TextLabel")
 			if text then
-				text.Text = math.floor(humanoid.Health) .. " HP";
+				text.Text = math.floor(humanoid.Health).." HP"
 			end
 		end
+
 		if not Boxes[v] then
-			local box = Drawing.new("Square");
-			box.Color = Color3.new(1, 0, 0);
-			box.Thickness = 2;
-			box.Filled = false;
-			Boxes[v] = box;
+			local box = Drawing.new("Square")
+			box.Color = Color3.new(1,0,0)
+			box.Thickness = 2
+			box.Filled = false
+			Boxes[v] = box
 		end
+
 		if not Lines[v] then
-			local line = Drawing.new("Line");
-			line.Color = Color3.new(1, 0, 0);
-			line.Thickness = 1.5;
-			Lines[v] = line;
+			local line = Drawing.new("Line")
+			line.Color = Color3.new(1,0,0)
+			line.Thickness = 1.5
+			Lines[v] = line
 		end
-		local pos, onScreen = Camera:WorldToViewportPoint(root.Position);
+
+		local pos, onScreen = Camera:WorldToViewportPoint(root.Position)
+
 		if onScreen then
-			Boxes[v].Size = BOX_SIZE;
-			Boxes[v].Position = Vector2.new(pos.X - 40, pos.Y - 60);
-			Boxes[v].Visible = true;
-			Lines[v].From = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y);
-			Lines[v].To = Vector2.new(pos.X, pos.Y);
-			Lines[v].Visible = true;
+			Boxes[v].Size = BOX_SIZE
+			Boxes[v].Position = Vector2.new(pos.X - 40, pos.Y - 60)
+			Boxes[v].Visible = true
+
+			Lines[v].From = Vector2.new(Camera.ViewportSize.X/2, Camera.ViewportSize.Y)
+			Lines[v].To = Vector2.new(pos.X, pos.Y)
+			Lines[v].Visible = true
 		else
-			Boxes[v].Visible = false;
-			Lines[v].Visible = false;
+			Boxes[v].Visible = false
+			Lines[v].Visible = false
 		end
 	end
-end);
+end)
